@@ -19,6 +19,7 @@ public class Lesson {
 
     private String text;
     private String audioUrl;
+    private String title;
 
     @ManyToOne
     @JoinColumn

@@ -1,4 +1,4 @@
 package andrea.lurny.specifications;
 
-public class CategorySpecification {
+public class CategorySpecifications {
 }
