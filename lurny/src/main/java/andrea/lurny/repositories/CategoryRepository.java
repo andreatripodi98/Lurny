@@ -10,7 +10,4 @@ import java.util.UUID;
 
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    Optional <Category> findByName(String name);
-
-    Page<Category> findAll(int pageNumber, int pageSize, String sortBy);
 }

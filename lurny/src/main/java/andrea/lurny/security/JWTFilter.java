@@ -16,6 +16,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -29,21 +30,27 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) throw new UnauthorizedException("Inserire il token nell'header nel formato giusto!");
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
+            throw new UnauthorizedException("Inserire il token nell'header nel formato giusto!");
 
-        String accessToken = authHeader.replace("Bearer ","");
+        String accessToken = authHeader.replace("Bearer ", "");
 
         tools.verifyToken(accessToken);
 
         UUID userId = tools.extractIdFromToken(accessToken);
 
-        User found = this.service.findById(userId);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(found,null);
+        // QUI LA FIX
+        User found = this.service.findEntityById(userId);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(found, null, List.of());
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        filterChain.doFilter(request,response);
+
+        filterChain.doFilter(request, response);
     }
 
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
         return new AntPathMatcher().match("/auth/**", request.getServletPath());
     }
 }
+

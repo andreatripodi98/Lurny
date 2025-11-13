@@ -4,9 +4,7 @@ package andrea.lurny.controllers;
 
 import andrea.lurny.entities.User;
 import andrea.lurny.exceptions.ValidationException;
-import andrea.lurny.payloads.LoginDTO;
-import andrea.lurny.payloads.LoginResponseDTO;
-import andrea.lurny.payloads.UserDTO;
+import andrea.lurny.payloads.*;
 import andrea.lurny.services.AuthService;
 import andrea.lurny.services.UserService;
 import jakarta.validation.Valid;
@@ -29,16 +27,16 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginDTO body) {
-        return new LoginResponseDTO(authService.checkCredentialsAndGenerateToken(body));
+    public LoginResponseDTO login(@RequestBody @Valid UserLoginDTO body) {
+        String token = authService.checkCredentialsAndGenerateToken(body);
+        return new LoginResponseDTO(token);
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User register(@RequestBody @Valid UserDTO body, BindingResult validationResult) {
+    public UserResponseDTO register(@RequestBody @Valid UserRegisterDTO body, BindingResult validationResult) {
 
         if (validationResult.hasErrors()) {
-
             List<String> errors = validationResult.getFieldErrors()
                     .stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -47,9 +45,9 @@ public class AuthController {
             throw new ValidationException(errors);
         }
 
-        return userService.registerUser(body);
+        return userService.register(body);
     }
-
 }
+
 
 
