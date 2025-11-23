@@ -7,6 +7,7 @@ import andrea.lurny.exceptions.UnauthorizedException;
 import andrea.lurny.payloads.UserLoginDTO;
 import andrea.lurny.payloads.UserRegisterDTO;
 import andrea.lurny.payloads.UserResponseDTO;
+import andrea.lurny.payloads.UserUpdateDTO;
 import andrea.lurny.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,54 +24,58 @@ public class UserService {
     @Autowired
     private PasswordEncoder bcrypt;
 
-
     private UserResponseDTO map(User u) {
         return new UserResponseDTO(
                 u.getId(),
                 u.getFirstName(),
                 u.getLastName(),
                 u.getUsername(),
-                u.getEmail()
+                u.getEmail(),
+                u.getAvatar()
         );
     }
+
     public User findEntityById(UUID id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
+
     public User findEntityByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
-    // Get user by ID
     public UserResponseDTO findById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = findEntityById(id);
         return map(user);
     }
 
-    // Update user
-    public UserResponseDTO update(UUID id, UserRegisterDTO body) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+    // 🔵 UPDATE PROFILO
+    public UserResponseDTO update(UUID id, UserUpdateDTO body) {
+        User user = findEntityById(id);
 
-        user.setFirstName(body.firstName());
-        user.setLastName(body.lastName());
-        user.setUsername(body.username());
-        user.setEmail(body.email());
-        user.setPassword(bcrypt.encode(body.password()));
+        if (body.firstName() != null) user.setFirstName(body.firstName());
+        if (body.lastName() != null) user.setLastName(body.lastName());
+        if (body.username() != null) user.setUsername(body.username());
+        if (body.email() != null) user.setEmail(body.email());
+        if (body.avatar() != null) user.setAvatar(body.avatar());
 
         return map(userRepository.save(user));
     }
 
-    // Delete user
+    // 🔵 UPDATE AVATAR SOLO
+    public UserResponseDTO updateAvatar(UUID id, String avatar) {
+        User user = findEntityById(id);
+        user.setAvatar(avatar);
+        return map(userRepository.save(user));
+    }
+
     public void delete(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        User user = findEntityById(id);
         userRepository.delete(user);
     }
 
-    // Register new user
+    // 🟣 REGISTER
     public UserResponseDTO register(UserRegisterDTO body) {
         if (userRepository.existsByUsername(body.username())) {
             throw new AlreadyExistingException("Username already in use");
@@ -87,10 +92,15 @@ public class UserService {
         u.setEmail(body.email());
         u.setPassword(bcrypt.encode(body.password()));
 
+        // avatar opzionale
+        if (body.avatar() != null) {
+            u.setAvatar(body.avatar());
+        }
+
         return map(userRepository.save(u));
     }
 
-    // Login
+    // 🔵 LOGIN
     public User login(UserLoginDTO body) {
         User user = userRepository.findByUsername(body.username())
                 .orElseThrow(() -> new NotFoundException("User not found"));

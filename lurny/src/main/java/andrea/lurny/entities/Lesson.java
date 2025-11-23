@@ -17,12 +17,14 @@ public class Lesson {
     @Setter(AccessLevel.NONE)
     private UUID id;
 
+    @Column(columnDefinition = "TEXT")
     private String text;
-    private String audioUrl;
+
+    private String imageUrl;
     private String title;
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(name = "category_id")
     private Category category;
 
 }

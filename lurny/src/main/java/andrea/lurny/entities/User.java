@@ -25,6 +25,7 @@ public class User {
     @Setter(AccessLevel.NONE)
     private UUID id;
 
+    private String avatar;
     private String firstName;
     private String lastName;
     private String username;

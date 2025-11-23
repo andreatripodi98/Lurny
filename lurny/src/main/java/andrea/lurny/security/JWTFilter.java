@@ -21,6 +21,7 @@ import java.util.UUID;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
+
     @Autowired
     private JWTTools tools;
 
@@ -28,22 +29,32 @@ public class JWTFilter extends OncePerRequestFilter {
     private UserService service;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new UnauthorizedException("Inserire il token nell'header nel formato giusto!");
 
-        String accessToken = authHeader.replace("Bearer ", "");
 
-        tools.verifyToken(accessToken);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String accessToken = authHeader.substring(7);
+
+        try {
+            tools.verifyToken(accessToken);
+        } catch (Exception e) {
+            throw new UnauthorizedException("Token non valido!");
+        }
 
         UUID userId = tools.extractIdFromToken(accessToken);
+        User found = service.findEntityById(userId);
 
-        // QUI LA FIX
-        User found = this.service.findEntityById(userId);
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(found, null, List.of());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        Authentication auth = new UsernamePasswordAuthenticationToken(found, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);
     }
@@ -53,4 +64,5 @@ public class JWTFilter extends OncePerRequestFilter {
         return new AntPathMatcher().match("/auth/**", request.getServletPath());
     }
 }
+
 

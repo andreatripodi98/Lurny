@@ -19,7 +19,8 @@ public record UserDTO(@NotBlank(message = "Please type your username")
                       String firstName,
                       @NotBlank(message = "Please add your surname")
                       @Size(min = 2, max = 30, message = "The surname must contain a minimum of 2 characters")
-                      String lastName) {
+                      String lastName,
+                      String avatar) {
 
 
 }

@@ -24,5 +24,8 @@ public record UserRegisterDTO(
 
         @NotBlank(message = "Password is required")
         @Size(min = 6, max = 15, message = "Password must be at least 6 characters long")
-        String password
+        String password,
+
+        String avatar
+
 ) {}

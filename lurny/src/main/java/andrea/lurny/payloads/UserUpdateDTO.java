@@ -1,9 +1,6 @@
 package andrea.lurny.payloads;
 
-import java.util.UUID;
-
-public record UserResponseDTO(
-        UUID id,
+public record UserUpdateDTO(
         String firstName,
         String lastName,
         String username,
