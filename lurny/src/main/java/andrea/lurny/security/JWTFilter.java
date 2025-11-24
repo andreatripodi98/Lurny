@@ -22,11 +22,19 @@ import java.util.UUID;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JWTTools tools;
+    private final JWTTools tools;
+    private final UserService service;
 
     @Autowired
-    private UserService service;
+    public JWTFilter(JWTTools tools, UserService service) {
+        this.tools = tools;
+        this.service = service;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return new AntPathMatcher().match("/auth/**", request.getServletPath());
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,33 +44,23 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String accessToken = authHeader.substring(7);
+        String token = authHeader.substring(7);
 
-        try {
-            tools.verifyToken(accessToken);
-        } catch (Exception e) {
-            throw new UnauthorizedException("Token non valido!");
-        }
+        tools.verifyToken(token);
+        UUID id = tools.extractIdFromToken(token);
+        User user = service.findEntityById(id);
 
-        UUID userId = tools.extractIdFromToken(accessToken);
-        User found = service.findEntityById(userId);
-
-        Authentication auth = new UsernamePasswordAuthenticationToken(found, null, List.of());
+        Authentication auth = new UsernamePasswordAuthenticationToken(user, null, List.of());
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);
     }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return new AntPathMatcher().match("/auth/**", request.getServletPath());
-    }
 }
+
 
 

@@ -41,8 +41,7 @@ public class UserService {
     }
 
     public User findEntityByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        return userRepository.findByUsername(username).orElse(null);
     }
 
     public UserResponseDTO findById(UUID id) {
@@ -50,7 +49,7 @@ public class UserService {
         return map(user);
     }
 
-    // 🔵 UPDATE PROFILO
+    //  UPDATE PROFILO
     public UserResponseDTO update(UUID id, UserUpdateDTO body) {
         User user = findEntityById(id);
 
@@ -63,7 +62,7 @@ public class UserService {
         return map(userRepository.save(user));
     }
 
-    // 🔵 UPDATE AVATAR SOLO
+    //  UPDATE AVATAR SOLO
     public UserResponseDTO updateAvatar(UUID id, String avatar) {
         User user = findEntityById(id);
         user.setAvatar(avatar);
@@ -75,7 +74,7 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    // 🟣 REGISTER
+    //  REGISTER
     public UserResponseDTO register(UserRegisterDTO body) {
         if (userRepository.existsByUsername(body.username())) {
             throw new AlreadyExistingException("Username already in use");
@@ -100,15 +99,4 @@ public class UserService {
         return map(userRepository.save(u));
     }
 
-    // 🔵 LOGIN
-    public User login(UserLoginDTO body) {
-        User user = userRepository.findByUsername(body.username())
-                .orElseThrow(() -> new NotFoundException("User not found"));
-
-        if (!bcrypt.matches(body.password(), user.getPassword())) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
-
-        return user;
-    }
 }
