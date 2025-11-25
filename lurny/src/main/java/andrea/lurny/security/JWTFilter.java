@@ -22,45 +22,22 @@ import java.util.UUID;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    private final JWTTools tools;
-    private final UserService service;
-
-    @Autowired
-    public JWTFilter(JWTTools tools, UserService service) {
-        this.tools = tools;
-        this.service = service;
-    }
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return new AntPathMatcher().match("/auth/**", request.getServletPath());
+        return true;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
-
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token = authHeader.substring(7);
-
-        tools.verifyToken(token);
-        UUID id = tools.extractIdFromToken(token);
-        User user = service.findEntityById(id);
-
-        Authentication auth = new UsernamePasswordAuthenticationToken(user, null, List.of());
-        SecurityContextHolder.getContext().setAuthentication(auth);
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws IOException, ServletException {
 
         filterChain.doFilter(request, response);
     }
 }
+
 
 
 

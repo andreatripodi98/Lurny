@@ -28,7 +28,7 @@ public class JWTTools {
         try {
             Jwts.parser().verifyWith(Keys.hmacShaKeyFor(secret.getBytes())).build().parse(accessToken);
         } catch (Exception ex) {
-            throw new UnauthorizedException("Please make sure your password is correct!");
+            throw new UnauthorizedException("Please log in again");
         }
     }
     public UUID extractIdFromToken(String accessToken){

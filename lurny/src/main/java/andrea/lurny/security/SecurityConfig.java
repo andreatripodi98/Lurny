@@ -26,45 +26,32 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    public JWTFilter jwtFilter(JWTTools tools, UserService service) {
-        return new JWTFilter(tools, service);
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.formLogin(AbstractHttpConfigurer::disable);
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        httpSecurity.sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        httpSecurity.authorizeHttpRequests(req -> req.requestMatchers("/**").permitAll());
+        httpSecurity.cors(Customizer.withDefaults());
+        return httpSecurity.build();
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-                                           JWTFilter jwtFilter) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(req -> req
-                        .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .cors(Customizer.withDefaults());
-
-        return http.build();
+    public PasswordEncoder getBCrypt(){
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("*"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:5173", "http://127.0.0.1:5500"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
-    @Bean
-    public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder(12);
-    }
 }
+
 
 
 
