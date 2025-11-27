@@ -32,14 +32,14 @@ public class UserController {
         return userService.findById(current.getId());
     }
 
-    // UPDATE COMPLETO DEL PROFILO (NO PASSWORD)
+    // UPDATE COMPLETO DEL PROFILO
     @PutMapping("/me")
     public UserResponseDTO updateMyProfile(@RequestBody @Valid UserUpdateDTO body) {
         User current = getCurrentUser();
         return userService.update(current.getId(), body);
     }
 
-    // UPDATE SOLO AVATAR (opzionale)
+    // UPDATE SOLO AVATAR
     @PutMapping("/me/avatar")
     public UserResponseDTO updateAvatar(@RequestBody AvatarDTO body) {
         User current = getCurrentUser();
